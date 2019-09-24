@@ -158,6 +158,8 @@ class ConsensusSiever(ConsensusBase):
 
             block_builder = self._block_manager.epoch.makeup_block(complain_votes, last_block_vote_list)
             need_next_call = False
+            round_ = self._block_manager.epoch.round
+            util.logger.warning(f"before broadcast : {round_}")
             try:
                 if complained_result or new_term:
                     util.logger.spam("consensus block_builder.complained or new term")
@@ -205,7 +207,8 @@ class ConsensusSiever(ConsensusBase):
 
             util.logger.spam(f"candidate block : {candidate_block.header}")
             self._block_manager.candidate_blocks.add_block(candidate_block)
-            self.__broadcast_block(candidate_block)
+            self.__broadcast_block(candidate_block, max(self._block_manager.epoch.round, round_))
+            util.logger.warning(f"after broadcast : {self._block_manager.epoch.round}/{round_}")
             self._block_manager.vote_unconfirmed_block(candidate_block, True)
 
             # unrecorded_block means the last block of term to add prep changed block.
@@ -301,7 +304,7 @@ class ConsensusSiever(ConsensusBase):
 
                 self.__check_timeout(last_unconfirmed_block)
                 if not prev_votes.is_completed():
-                    self.__broadcast_block(last_unconfirmed_block)
+                    self.__broadcast_block(last_unconfirmed_block, self._block_manager.epoch.round)
                     if await self._wait_for_voting(last_unconfirmed_block) is None:
                         return None
 
@@ -355,6 +358,7 @@ class ConsensusSiever(ConsensusBase):
         if timer_key in timer_service.timer_list:
             timer_service.stop_timer(timer_key)
 
-    def __broadcast_block(self, block: 'Block'):
-        broadcast_func = partial(self._block_manager.broadcast_send_unconfirmed_block, block)
+    def __broadcast_block(self, block: 'Block', round_):
+        broadcast_func = partial(
+            self._block_manager.broadcast_send_unconfirmed_block, block, round_)
         self.__start_broadcast_send_unconfirmed_block_timer(broadcast_func)
