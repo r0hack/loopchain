@@ -715,6 +715,7 @@ class ChannelInnerTask:
             f"announce_unconfirmed_block \n"
             f"peer_id({unconfirmed_block.header.peer_id.hex()})\n"
             f"height({unconfirmed_block.header.height})\n"
+            f"round({round_})\n"
             f"hash({unconfirmed_block.header.hash.hex()})")
 
         if self._channel_service.state_machine.state not in \
@@ -794,7 +795,8 @@ class ChannelInnerTask:
             raise
         else:
             vote = BlockVote.deserialize(vote_serialized)
-            util.logger.debug(f"Peer vote to : {vote.block_height} {vote.block_hash} from {vote.rep.hex_hx()}")
+            util.logger.debug(
+                f"Peer vote to : {vote.block_height}({vote.round_}) {vote.block_hash} from {vote.rep.hex_hx()}")
             self._block_manager.candidate_blocks.add_vote(vote)
 
             if self._channel_service.state_machine.state == "BlockGenerate" and \
