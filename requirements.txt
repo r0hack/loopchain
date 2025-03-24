@@ -9,7 +9,7 @@ aiohttp==3.4.4
 coloredlogs==10.0
 earlgrey==0.0.4
 fluent-logger==0.9.3
-gunicorn==19.9.0
+gunicorn==23.0.0
 jsonrpcclient==2.6.0
 jsonrpcserver==3.5.6
 leveldb==0.20
